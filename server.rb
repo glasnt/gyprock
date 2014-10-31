@@ -1,7 +1,7 @@
 require 'sinatra'
 require 'json'
 
-require_relative './vendor/image_sorcery'
+require './image_sorcery.rb'
 
 url = {list: "/wallpaper", 
 	img: "/wallpaper/:img", 
