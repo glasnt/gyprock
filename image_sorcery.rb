@@ -1,4 +1,3 @@
-require 'gm_support'
 require 'color'
 class ImageSorcery
   attr_reader :file
