@@ -1,5 +1,5 @@
 PATH
-  remote: vendor/image_sorcery/ 
+  remote: vendor/image_sorcery/
   specs:
     image_sorcery (1.1.0)
 
