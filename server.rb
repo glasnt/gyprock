@@ -53,6 +53,10 @@ get url[:wallpaper] do
 	if h == 0 
 		err = "Height needs to be an integer greater than 0"
 	end
+
+	if w > 3840 || h > 2160
+		err = "Slow down there, bucko! I can't do anything bigger than 4K"
+	end
 	
 	unless err.length > 0
 		debug "we'll gen an image for #{image} with dimensions #{w}x#{h} in format #{ext}"
