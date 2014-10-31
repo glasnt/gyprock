@@ -82,7 +82,7 @@ def get_name str; str.split("/").last.split(".").first; end
 
 def source_image_dir;  "public"; end
 def source_ext;        "jpg";    end
-def created_image_dir; "images"; end
+def created_image_dir; ENV['OPENSHIFT_DATA_DIR'] || "images"; end
 def created_ext;       "png";    end
 def link href, link=href; "<a href=\"#{href}\">#{link}</a>"; end
 def sub h, sym, t; s = ":"+sym.to_s; h[sym].gsub(s,t); end
