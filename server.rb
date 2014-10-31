@@ -1,8 +1,6 @@
 require 'sinatra'
 require 'json'
 
-require './image_sorcery.rb'
-
 url = {list: "/wallpaper", 
 	img: "/wallpaper/:img", 
 	wallpaper: "/wallpaper/:img/:width/:height"}
