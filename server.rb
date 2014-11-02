@@ -1,6 +1,6 @@
 require 'sinatra'
 require 'json'
-
+require 'sinatra/reloader'
 url = {list: "/wallpaper", 
 	img: "/wallpaper/:img", 
 	wallpaper: "/wallpaper/:img/:width/:height"}
@@ -17,15 +17,21 @@ get url[:list] do
 	Dir.glob(File.join(source_image_dir, "*.#{source_ext}")).each {|f|
 		id = get_name f
 		list << link(url[:img].gsub(":img",id),id)
-		#list << "<a href='#{url[:img].gsub(":img",id)}'>#{id}</a>" 
 	}
 	list.join("<br/>")
 end
 
 get url[:img] do
 	i = params[:img]
-	"#{i} <img src=\"../#{i}.#{source_ext}\"><br/>"+
-	"Try these: <a href='#{url[:wallpaper].gsub(":img",i).gsub(":width/:height", "1024/786")}'>1024x768</a>"
+	o = ["<img src=\"../#{i}.#{source_ext}\">"]
+	o << "Try these: "
+	["1024_768","1600_900","2560_1920"].each do |r|
+		x = r.tr("_","x")
+		s = r.tr("_","/")
+		o << "<a href='#{url[:wallpaper].gsub(":img",i).gsub(":width/:height", s)}'>#{x}</a>"
+	end
+	o << "Or, enter whatever you like"
+	o.join("<br/>")
 end
 
 get url[:wallpaper].split("/")[0..-2].join("/") do
