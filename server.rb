@@ -1,6 +1,5 @@
 require 'sinatra'
 require 'json'
-require 'sinatra/reloader'
 url = {list: "/wallpaper", 
 	img: "/wallpaper/:img", 
 	wallpaper: "/wallpaper/:img/:width/:height"}
