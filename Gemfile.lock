@@ -1,8 +1,8 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    backports (3.6.0)
-    color (1.7)
+    backports (3.6.3)
+    color (1.7.1)
     multi_json (1.10.1)
     rack (1.5.2)
     rack-protection (1.5.3)
