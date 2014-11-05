@@ -1,5 +1,8 @@
 require 'sinatra'
 require 'json'
+require 'image_sorcery'
+require 'sinatra/reloader' if development?
+
 url = {list: "/wallpaper", 
 	img: "/wallpaper/:img", 
 	wallpaper: "/wallpaper/:img/:width/:height"}
@@ -22,15 +25,15 @@ end
 
 get url[:img] do
 	i = params[:img]
-	o = ["<img src=\"../#{i}.#{source_ext}\">"]
-	o << "Try these: "
-	["1024_768","1600_900","2560_1920"].each do |r|
-		x = r.tr("_","x")
-		s = r.tr("_","/")
-		o << "<a href='#{url[:wallpaper].gsub(":img",i).gsub(":width/:height", s)}'>#{x}</a>"
-	end
-	o << "Or, enter whatever you like"
-	o.join("<br/>")
+        o = ["<img src=\"../#{i}.#{source_ext}\">"]
+        o << "Try these: "
+        ["1024_768","1600_900","2560_1920"].each do |r|
+                x = r.tr("_","x")
+                s = r.tr("_","/")
+                o << "<a href='#{url[:wallpaper].gsub(":img",i).gsub(":width/:height", s)}'>#{x}</a>"
+        end
+        o << "Or, enter whatever you like"
+        o.join("<br/>")
 end
 
 get url[:wallpaper].split("/")[0..-2].join("/") do
@@ -59,21 +62,24 @@ get url[:wallpaper] do
 		err = "Height needs to be an integer greater than 0"
 	end
 
-	if w > 3840 || h > 2160
-		err = "Slow down there, bucko! I can't do anything bigger than 4K"
-	end
+        if w > 3840 || h > 2160
+                err = "Slow down there, bucko! I can't do anything bigger than 4K"
+        end
 	
 	unless err.length > 0
-		debug "we'll gen an image for #{image} with dimensions #{w}x#{h} in format #{ext}"
+		debug "Got a request for #{image} with dimensions #{w}x#{h} in format #{ext}"
 		file = File.join(created_image_dir, img_name(image, w, h, ext))
 		
 		unless File.exists? file
+			debug "File doesn't yet exist, create it!~"
 			file = make({file: File.join(source_image_dir, "#{image}.#{source_ext}"),
 				     height: h,
 				     width: w,
 				     output_folder: "images"})
 
 			debug "created #{file}"
+		else 
+			debug "File already existed. NOT creating"
 		end
 
 
@@ -91,7 +97,7 @@ def get_name str; str.split("/").last.split(".").first; end
 
 def source_image_dir;  "public"; end
 def source_ext;        "jpg";    end
-def created_image_dir; ENV['OPENSHIFT_DATA_DIR'] || "images"; end
+def created_image_dir; "images"; end
 def created_ext;       "png";    end
 def link href, link=href; "<a href=\"#{href}\">#{link}</a>"; end
 def sub h, sym, t; s = ":"+sym.to_s; h[sym].gsub(s,t); end
