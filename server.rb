@@ -1,7 +1,7 @@
 require 'sinatra'
 require 'json'
-require 'image_sorcery'
-require 'sinatra/reloader' if development?
+#require 'image_sorcery'
+#require 'sinatra/reloader' if development?
 
 url = {list: "/wallpaper", 
 	img: "/wallpaper/:img", 
