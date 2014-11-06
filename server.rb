@@ -72,7 +72,7 @@ get url[:wallpaper] do
 		
 		unless File.exists? file
 			debug "File doesn't yet exist, create it!~"
-			file = make({file: File.join(source_image_dir, "#{image}.#{source_ext}"),
+			file, msg = make({file: File.join(source_image_dir, "#{image}.#{source_ext}"),
 				     height: h,
 				     width: w,
 				     output_folder: "images"})
@@ -82,8 +82,11 @@ get url[:wallpaper] do
 			debug "File already existed. NOT creating"
 		end
 
-
-		send_file(file, {:disposition => "inline", :filename => file})
+		unless file.nil?
+			send_file(file, {:disposition => "inline", :filename => file})
+		else
+			msg
+		end
 	else
 		"Whoopsie! #{err}"
 	end
@@ -114,8 +117,10 @@ def make args
 	i = ImageSorcery.new file
 
         unless (i.background == i.base_color) then
-                debug "Error processing #{file}: Background color #{i.background} does not match" \
+                msg =  "Error processing #{file}: Background color #{i.background} does not match" \
                         "base colour #{i.base_color}. Manual intervention required"
+		debug msg
+		return nil, msg
         else
                 start  = Time.now.to_f
 		resolution = "#{w}x#{h}"
@@ -140,7 +145,7 @@ def make args
 
                 debug "New file in #{fn}"
                 debug "Processed in: #{(Time.now.to_f - start).round(3)} ms"
-                return fn
+                return fn,""
         end
 end
 

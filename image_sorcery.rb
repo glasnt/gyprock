@@ -119,7 +119,8 @@ class ImageSorcery
   def base_color
 	tokens = ["convert"]
 	tokens << " '#{@file}' "
-	tokens << " -format '%[pixel:p{0,0}]' info:- "
+	tokens << "-format '%[fx:int(255*p{1,1}.r)],%[fx:int(255*p{1,1}.g)],%[fx:int(255*p{1,1}.b)]' "
+	tokens << " info:- "
 	tokens = convert_to_command(tokens)
 	output, success = run(tokens)
 	return false if output.empty?
