@@ -1,19 +1,20 @@
 url = {list: "/wallpaper", 
 	img: "/wallpaper/:img", 
+	images: "/images/:img",
 	wallpaper: "/wallpaper/:img/:width/:height"}
 
 get '/' do
-	"Gyprock API"+
-	"<dt><code>#{link url[:list]}</code> <dd>list of images</dt>"+
-	"<dt><code>#{link url[:img]}</code> <dd>image information</dt>"+
-	"<dt><code>#{link url[:wallpaper]}</code> <dd>wallpaper in your dimensions</dt>"
-	@wallpapers =  Dir.glob(File.join(source_image_dir, "*.#{source_ext}")).map{|a| get_name a}
+	@wallpapers = source_images.map{|a| get_name a}.sort
 	erb :index
 end
 
+get url[:images] do
+	file = base_image(params[:img])
+	send_file(file, {:disposition => "inline", :filename => file})
+end	
 get url[:list] do
 	list = []
-	Dir.glob(File.join(source_image_dir, "*.#{source_ext}")).each {|f|
+	source_images.each {|f|
 		id = get_name f
 		list << link(url[:img].gsub(":img",id),id)
 	}
@@ -42,7 +43,7 @@ get url[:wallpaper] do
 	
 	image = params[:img]
 
-	unless File.exists? File.join(source_image_dir, image+".#{source_ext}") 
+	unless File.exists? base_image image
 		err = "Image invalid identifier"
 	end
 
@@ -69,7 +70,7 @@ get url[:wallpaper] do
 		
 		unless File.exists? file
 			debug "File doesn't yet exist, create it!~"
-			file, msg = make({file: File.join(source_image_dir, "#{image}.#{source_ext}"),
+			file, msg = make({file: base_image(image),
 				     height: h,
 				     width: w,
 				     output_folder: "images"})
@@ -92,13 +93,15 @@ end
 def img_name i, w, h, e; "#{i}_#{w}x#{h}.#{e}"; end
 
 def debug msg; puts msg if ENV["DEBUG"]; end
-
 def get_name str; str.split("/").last.split(".").first; end
-
 def source_image_dir;  ENV["OPENSHIFT_DATA_DIR"] || "public"; end
-def source_ext;        "jpg";    end
 def created_image_dir; ENV["OPENSHIFT_TMP_DIR"] || "images"; end
+def js_image_dir; "images"; end
+def source_ext;        "jpg";    end
 def created_ext;       "png";    end
+def source_images; Dir.glob(File.join(source_image_dir, "*.#{source_ext}")); end
+def js_base_image image; File.join(js_image_dir, image); end
+def base_image image; File.join(source_image_dir, "#{image}.#{source_ext}"); end
 def link href, link=href; "<a href=\"#{href}\">#{link}</a>"; end
 def sub h, sym, t; s = ":"+sym.to_s; h[sym].gsub(s,t); end
 

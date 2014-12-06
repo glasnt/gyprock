@@ -1,39 +1,45 @@
 <body onLoad="setSize()" >
-
-Gyprock <a href="wallpaper">List</a><br>
-
-
-<span id="identify">Let's get you a <span id="width"></span>x<span id="height"></span></span>
-<br/>
-Did I get that wrong? Enter what you want, instead: <form id="user"><input id="width"> x <input id="height"></form>
+<style>
+.preview { width: 10% }
+form { display: inline-block; }
+input { width: 100px } 
+</style>
+<p>
+<form id="user">
+Gyprock - Generating <input id="width" type="number">x<input id="height" type="number"></form> wallpapers, just for you <span id="feedback">&lt;3</span>
+</p>
 
 <% @wallpapers.each do |w| %>
-	<a href="javascript:getWallpaper(<%= w %>)"><%= w %></a></br>
+<a href="javascript:getWallpaper(<%= w %>)">
+	<img src="<%= js_base_image w %>" class="preview">
+</a>
 <% end %>
 
 
 <script>
-var w, h, image;
+var w, h
 
 function setSize () { 
-	w = window.screen.availWidth
-	h = window.screen.availHeight
+	w = window.screen.width
+	h = window.screen.height
 
-	//TODO Sanitize size
+	user_width = document.forms["user"]["width"]
+	user_height = document.forms["user"]["height"]
 
-	document.forms["user"]["width"].value = w
-	document.forms["user"]["height"].value = h
-
-	document.getElementById("width").innerHTML = w
-	document.getElementById("height").innerHTML = h
+	if (user_width.value === "") { user_width.value = w }
+	if (user_height.value === "") { user_height.value = h }
 }
 
 
 function getWallpaper(id) { 
-	width = parseInt(document.forms["user"]["width"].value || w)
-	height = parseInt(document.forms["user"]["height"].value || h)
+	width = document.forms["user"]["width"].value || w
+	height =  document.forms["user"]["height"].value || h
 
-	window.location.href = "wallpaper/"+id+"/"+width+"/"+height
+	if ((width === parseInt(width).toString()) && (height === parseInt(height).toString()))  {
+		window.location.href = "wallpaper/"+id+"/"+width+"/"+height
+	} else { 
+		document.getElementById("feedback").innerHTML=". Come on now, Jack, just use sensible integers"
+	}
 } 
 
 </script>
