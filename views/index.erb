@@ -1,0 +1,40 @@
+<body onLoad="setSize()" >
+
+Gyprock <a href="wallpaper">List</a><br>
+
+
+<span id="identify">Let's get you a <span id="width"></span>x<span id="height"></span></span>
+<br/>
+Did I get that wrong? Enter what you want, instead: <form id="user"><input id="width"> x <input id="height"></form>
+
+<% @wallpapers.each do |w| %>
+	<a href="javascript:getWallpaper(<%= w %>)"><%= w %></a></br>
+<% end %>
+
+
+<script>
+var w, h, image;
+
+function setSize () { 
+	w = window.screen.availWidth
+	h = window.screen.availHeight
+
+	//TODO Sanitize size
+
+	document.forms["user"]["width"].value = w
+	document.forms["user"]["height"].value = h
+
+	document.getElementById("width").innerHTML = w
+	document.getElementById("height").innerHTML = h
+}
+
+
+function getWallpaper(id) { 
+	width = parseInt(document.forms["user"]["width"].value || w)
+	height = parseInt(document.forms["user"]["height"].value || h)
+
+	window.location.href = "wallpaper/"+id+"/"+width+"/"+height
+} 
+
+</script>
+</body>

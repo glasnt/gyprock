@@ -1,8 +1,3 @@
-require 'sinatra'
-require 'json'
-#require 'image_sorcery'
-#require 'sinatra/reloader' if development?
-
 url = {list: "/wallpaper", 
 	img: "/wallpaper/:img", 
 	wallpaper: "/wallpaper/:img/:width/:height"}
@@ -12,6 +7,8 @@ get '/' do
 	"<dt><code>#{link url[:list]}</code> <dd>list of images</dt>"+
 	"<dt><code>#{link url[:img]}</code> <dd>image information</dt>"+
 	"<dt><code>#{link url[:wallpaper]}</code> <dd>wallpaper in your dimensions</dt>"
+	@wallpapers =  Dir.glob(File.join(source_image_dir, "*.#{source_ext}")).map{|a| get_name a}
+	erb :index
 end
 
 get url[:list] do
@@ -98,9 +95,9 @@ def debug msg; puts msg if ENV["DEBUG"]; end
 
 def get_name str; str.split("/").last.split(".").first; end
 
-def source_image_dir;  "public"; end
+def source_image_dir;  ENV["OPENSHIFT_DATA_DIR"] || "public"; end
 def source_ext;        "jpg";    end
-def created_image_dir; ENV["OPENSHIFT_DATA_DIR"] || "images"; end
+def created_image_dir; ENV["OPENSHIFT_TMP_DIR"] || "images"; end
 def created_ext;       "png";    end
 def link href, link=href; "<a href=\"#{href}\">#{link}</a>"; end
 def sub h, sym, t; s = ":"+sym.to_s; h[sym].gsub(s,t); end
@@ -116,12 +113,14 @@ def make args
         debug "Converting #{file}"
 	i = ImageSorcery.new file
 
-        unless (i.background == i.base_color) then
-                msg =  "Error processing #{file}: Background color #{i.background} does not match" \
-                        "base colour #{i.base_color}. Manual intervention required"
-		debug msg
-		return nil, msg
-        else
+	color = i.base_color
+
+#        unless (color == i.base_color) then
+#                msg =  "Error processing #{file}: Background color #{i.background} does not match" \
+#                        "base colour #{i.base_color}."
+#		debug msg
+#		return nil, msg
+#        else
                 start  = Time.now.to_f
 		resolution = "#{w}x#{h}"
                 buffer = "#{w/10*9}x#{h/10*9}"
@@ -137,15 +136,15 @@ def make args
                 x.manipulate!(extent: buffer,
                               resize: buffer,
                               gravity: "SouthEast",
-                              background: i.background)
+                              background: color)
 
                 x.manipulate!(extent: resolution,
                               resize: resolution,
-                              background: i.background)
+                              background: color)
 
                 debug "New file in #{fn}"
                 debug "Processed in: #{(Time.now.to_f - start).round(3)} ms"
                 return fn,""
-        end
+ #       end
 end
 
