@@ -107,7 +107,7 @@ def get_name str; str.split("/").last.split(".").first; end
 def source_image_dir;  ENV["OPENSHIFT_DATA_DIR"] || "public"; end
 def created_image_dir; ENV["OPENSHIFT_TMP_DIR"] || "images"; end
 def js_image_dir; "images"; end
-def thumb_image_dir; File.join(source_image_dir, "thumb"; end
+def thumb_image_dir; File.join(source_image_dir, "thumb"); end
 def source_ext;        "jpg";    end
 def created_ext;       "png";    end
 def source_images; Dir.glob(File.join(source_image_dir, "*.#{source_ext}")); end
