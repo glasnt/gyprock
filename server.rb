@@ -130,12 +130,12 @@ def make args
 
 	color = i.base_color
 
-#        unless (color == i.base_color) then
-#                msg =  "Error processing #{file}: Background color #{i.background} does not match" \
-#                        "base colour #{i.base_color}."
-#		debug msg
-#		return nil, msg
-#        else
+        unless (color == i.base_color) then
+                msg =  "Error processing #{file}: Background color #{i.background} does not match" \
+                        "base colour #{i.base_color}. I got confused and gave up."
+		debug msg
+		return nil, msg
+	else
                 start  = Time.now.to_f
 		resolution = "#{w}x#{h}"
                 buffer = "#{w/10*9}x#{h/10*9}"
@@ -147,6 +147,7 @@ def make args
 	        FileUtils.cp(file,fn)
 
                 x = ImageSorcery.new(fn)
+		x.convert(fn, {trim: true})
 
                 x.manipulate!(extent: buffer,
                               resize: buffer,
@@ -160,6 +161,6 @@ def make args
                 debug "New file in #{fn}"
                 debug "Processed in: #{(Time.now.to_f - start).round(3)} ms"
                 return fn,""
- #       end
+	end
 end
 

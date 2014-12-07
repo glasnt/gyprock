@@ -41,6 +41,7 @@ class ImageSorcery
     tokens << convert_to_arguments(args) if args
     tokens << " '#{@file}#{"[#{args[:layer].to_s}]" if args[:layer]}'"
     tokens << " -annotate #{args[:annotate].to_s}" if args[:annotate]
+    tokens << " -trim" if args[:trim] && args[:trim] == true
     tokens << " #{output}"
     tokens  = convert_to_command(tokens)
     success = run(tokens)[1]
@@ -165,7 +166,7 @@ class ImageSorcery
   end
 
   def convert_to_arguments(args)
-    special_args = [:layer, :annotate]
+    special_args = [:layer, :annotate, :trim]
     args.reject {|k, v| special_args.include?(k) }.map {|k, v| " -#{k} '#{v}'"}
   end
 

@@ -1,4 +1,5 @@
 .project
-public/*
-images/*
+public/*.jpg
+public/thumb/*.jpg
+images/*.png
 *.swp
