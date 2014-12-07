@@ -9,7 +9,8 @@ get '/' do
 end
 
 get url[:images] do
-	file = base_image(params[:img])
+	file = thumb_image(params[:img])
+	file = make_thumb(params[:img]) unless File.exists? file
 	send_file(file, {:disposition => "inline", :filename => file})
 end	
 get url[:list] do
@@ -90,6 +91,15 @@ get url[:wallpaper] do
 	end
 end
 
+def make_thumb img
+	file = base_image img
+	fn = thumb_image img
+	FileUtils.cp(file, fn)
+	x = ImageSorcery.new(fn)
+	x.manipulate!(thumbnail: "150x150>")
+	return fn
+end
+
 def img_name i, w, h, e; "#{i}_#{w}x#{h}.#{e}"; end
 
 def debug msg; puts msg if ENV["DEBUG"]; end
@@ -97,11 +107,13 @@ def get_name str; str.split("/").last.split(".").first; end
 def source_image_dir;  ENV["OPENSHIFT_DATA_DIR"] || "public"; end
 def created_image_dir; ENV["OPENSHIFT_TMP_DIR"] || "images"; end
 def js_image_dir; "images"; end
+def thumb_image_dir; "public/thumb"; end
 def source_ext;        "jpg";    end
 def created_ext;       "png";    end
 def source_images; Dir.glob(File.join(source_image_dir, "*.#{source_ext}")); end
 def js_base_image image; File.join(js_image_dir, image); end
 def base_image image; File.join(source_image_dir, "#{image}.#{source_ext}"); end
+def thumb_image image; File.join(thumb_image_dir, "#{image}.#{source_ext}"); end
 def link href, link=href; "<a href=\"#{href}\">#{link}</a>"; end
 def sub h, sym, t; s = ":"+sym.to_s; h[sym].gsub(s,t); end
 

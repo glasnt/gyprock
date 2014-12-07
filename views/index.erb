@@ -1,6 +1,5 @@
 <body onLoad="setSize()" >
 <style>
-.preview { width: 10% }
 form { display: inline-block; }
 input { width: 100px } 
 </style>
@@ -10,9 +9,7 @@ Gyprock - Generating <input id="width" type="number">x<input id="height" type="n
 </p>
 
 <% @wallpapers.each do |w| %>
-<a href="javascript:getWallpaper(<%= w %>)">
-	<img src="<%= js_base_image w %>" class="preview">
-</a>
+<a href="javascript:getWallpaper(<%= w %>)"><img src="<%= js_base_image w %>" class="preview"></a>
 <% end %>
 
 
