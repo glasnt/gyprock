@@ -19,7 +19,7 @@
 	<div class="jumbotron">
 		<h1>Gyprock</h1>
 		<form id="user" class="form-inline">
-		Generating <span id="dynoform"></span> wallpapers, just for you<span id="message"></spa>
+		Generating <span id="dynoform"></span> wallpapers, just for you. <span id="message"></span>
 		</form>
 	</div>
 	<form id="hides"><input type="hidden" id="w" /><input type="hidden" id="h"/></form>
@@ -31,11 +31,11 @@
 		</div>
 	</div>
 	<footer class="footer">
-	<p align="right">
-<a href="http://glasnt.com">glasnt</a> |
-<a href="http://github.com/glasnt/gyprock"><i class="fa fa-github-square"></i></a> | 
-<a href="http://twitter.com/glasnt"><i class="fa fa-twitter"></i></a>
-</p>
+		<p align="right">
+		<a href="http://glasnt.com">glasnt</a> |
+		<a href="http://github.com/glasnt/gyprock"><i class="fa fa-github-square"></i></a> | 
+		<a href="http://twitter.com/glasnt"><i class="fa fa-twitter"></i></a>
+		</p>
 	</footer>	
 </div>
 <script>
@@ -50,16 +50,20 @@ function num(i) {
 	return (i === parseInt(i).toString()) ? true : false
 }
 
+function msg(msg, klass) { 
+	$("#message").attr("class",klass).append(msg)
+}
+
 function getWallpaper(id) { 
 	if (num(w) && num(h)) { 
 		window.location.href = "wallpaper/"+id+"/"+w+"/"+h
 	} else { 
-		document.getElementById("feedback").innerHTML=". Come on now, man, just use sensible integers"
+		msg("Input not an integer.", "alert-danger")
 	}
 } 
 
 function finalForm(){
-	location.hash == "form" ? inputForm() : textForm()
+	(location.hash === "form") ? inputForm() : textForm()
 }
 
 function in_vc(_id, _value) { 
@@ -68,9 +72,7 @@ function in_vc(_id, _value) {
 
 function rs_dv(id) {
 	var nf = "innerDyno";
- 
-	$(id).empty()
-	      .append($("<span>", { id: nf, style: 'display:inline-flex'}))
+	$(id).empty().append($("<span>", { id: nf, style: 'display:inline-flex'}))
 	return "#"+nf
 }
 
@@ -83,15 +85,15 @@ function loadNew() {
 
 function inputForm() { 
 	$(rs_dv("#dynoform")).append(in_vc("width", w))
-			     .append("x")
+			     .append($("<span>").append("x"))
 			     .append(in_vc("height", h))
-			     .append($("<button>", { class: "btn btn-sm", onclick: "loadNew(); textForm()"}).append("Go"))
+			     .append($("<button>", { class: "btn btn-sm", onclick: "loadNew(); textForm()"}).append($("<i>", {class:"fa fa-check"})))
 
 	location.hash = "form"
 }
 function textForm() { 
 	$(rs_dv("#dynoform")).attr("data-toggle","tooltip")
-		       .attr("data-placement","top")
+		       .attr("data-placement","bottom")
 		       .attr("title","Is this wrong? Click to edit")
 		       .click(function() { inputForm()})
 		       .append("<span id='width' >"+w+"</span>")
