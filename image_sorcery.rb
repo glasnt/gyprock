@@ -117,10 +117,10 @@ class ImageSorcery
 
   # Get the color of the top left most pixel as minute samplespace representationi
   # of the background color of an image
-  def base_color
+  def color_at x,y
 	tokens = ["convert"]
 	tokens << " '#{@file}' "
-	tokens << "-format '%[fx:int(255*p{1,1}.r)],%[fx:int(255*p{1,1}.g)],%[fx:int(255*p{1,1}.b)]' "
+	tokens << "-format '%[fx:int(255*p{#{x},#{y}}.r)],%[fx:int(255*p{#{x},#{y}}.g)],%[fx:int(255*p{#{x},#{y}}.b)]' "
 	tokens << " info:- "
 	tokens = convert_to_command(tokens)
 	output, success = run(tokens)

@@ -101,7 +101,7 @@ def make_thumb img
 	x.manipulate!(extent: res,
 		      resize: res,
 		      gravity: "center",
-		      background: x.base_color)
+		      background: x.base_color(1,1))
 
 	return fn
 end
@@ -124,49 +124,47 @@ def link href, link=href; "<a href=\"#{href}\">#{link}</a>"; end
 def sub h, sym, t; s = ":"+sym.to_s; h[sym].gsub(s,t); end
 
 def make args
+	start  = Time.now.to_f
+
         file = args[:file]
-        name = get_name file
         w = args[:width]
 	h = args[:height] 
 	output_folder = args[:output_folder]
+
+        name = get_name file
         ext = created_ext
+	resolution = "#{w}x#{h}"
+	buffer = "#{w/10*9}x#{h/10*9}"
 
         debug "Converting #{file}"
 	i = ImageSorcery.new file
 
-	color = i.base_color
+	points = [1, iw/2, iw].product([1,ih/2,ih])
+	points.delete_at(4) # rmv center point
 
-        unless (color == i.base_color) then
-                msg =  "Error processing #{file}: Background color #{i.background} does not match" \
-                        "base colour #{i.base_color}. I got confused and gave up."
-		debug msg
-		return nil, msg
-	else
-                start  = Time.now.to_f
-		resolution = "#{w}x#{h}"
-                buffer = "#{w/10*9}x#{h/10*9}"
-		
-		fn = File.join(output_folder, img_name(name, w, h, ext))
-        
-	        debug "FILE: #{file} to #{fn}, resolution: #{resolution}, full args: #{args}"
-        
-	        FileUtils.cp(file,fn)
+	color = points.map{|x,y| i.color_at(x,y)}
+		.inject(Hash.new(0)) { |h, e| h[e] += 1 ; h }
+		.sort_by{|k,v| v}.last.first
 
-                x = ImageSorcery.new(fn)
-		x.convert(fn, {trim: true})
+	
+	fn = File.join(output_folder, img_name(name, w, h, ext))
 
-                x.manipulate!(extent: buffer,
-                              resize: buffer,
-                              gravity: "SouthEast",
-                              background: color)
+	FileUtils.cp(file,fn)
 
-                x.manipulate!(extent: resolution,
-                              resize: resolution,
-                              background: color)
+	x = ImageSorcery.new(fn)
 
-                debug "New file in #{fn}"
-                debug "Processed in: #{(Time.now.to_f - start).round(3)} ms"
-                return fn,""
-	end
+	x.convert(fn, {trim: true})
+
+	x.manipulate!(extent: buffer,
+		      resize: buffer,
+		      gravity: "SouthEast",
+		      background: color)
+
+	x.manipulate!(extent: resolution,
+		      resize: resolution,
+		      background: color)
+
+	debug "New file in #{fn}\nProcessed in: #{(Time.now.to_f - start).round(3)} ms"
+	return fn,""
 end
 
