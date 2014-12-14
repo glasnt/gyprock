@@ -95,8 +95,14 @@ def make_thumb img
 	file = base_image img
 	fn = thumb_image img
 	FileUtils.cp(file, fn)
+	res = "150x150"
 	x = ImageSorcery.new(fn)
-	x.manipulate!(thumbnail: "150x150>")
+	x.manipulate!(thumbnail: "#{res}>")
+	x.manipulate!(extent: res,
+		      resize: res,
+		      gravity: "center",
+		      background: x.base_color)
+
 	return fn
 end
 
