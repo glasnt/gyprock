@@ -101,7 +101,7 @@ def make_thumb img
 	x.manipulate!(extent: res,
 		      resize: res,
 		      gravity: "center",
-		      background: x.base_color(1,1))
+		      background: base_color(file))
 
 	return fn
 end
@@ -123,6 +123,20 @@ def thumb_image image; File.join(thumb_image_dir, "#{image}.#{source_ext}"); end
 def link href, link=href; "<a href=\"#{href}\">#{link}</a>"; end
 def sub h, sym, t; s = ":"+sym.to_s; h[sym].gsub(s,t); end
 
+def base_color img
+	i = ImageSorcery.new img
+	iw = i.width
+	ih = i.height
+
+	points = [1, iw/2, iw].product([1,ih/2,ih])
+	points.delete_at(4) # remove center point
+
+	color = points.map{|x,y| i.color_at(x,y)}
+		.inject(Hash.new(0)) { |f, e| f[e] += 1 ; f }
+		.sort_by{|k,v| v}.last.first
+	return color
+end
+
 def make args
 	start  = Time.now.to_f
 
@@ -137,15 +151,8 @@ def make args
 	buffer = "#{w/10*9}x#{h/10*9}"
 
         debug "Converting #{file}"
-	i = ImageSorcery.new file
-
-	points = [1, iw/2, iw].product([1,ih/2,ih])
-	points.delete_at(4) # rmv center point
-
-	color = points.map{|x,y| i.color_at(x,y)}
-		.inject(Hash.new(0)) { |h, e| h[e] += 1 ; h }
-		.sort_by{|k,v| v}.last.first
-
+	
+	color = base_color file
 	
 	fn = File.join(output_folder, img_name(name, w, h, ext))
 
