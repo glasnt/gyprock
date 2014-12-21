@@ -1,48 +1,30 @@
-url = {list: "/wallpaper", 
-	img: "/wallpaper/:img", 
-	images: "/images/:img",
-	wallpaper: "/wallpaper/:img/:width/:height"}
+set :source_image_dir,  ENV["OPENSHIFT_DATA_DIR"] || "public"
+set :thumb_image_dir,   "#{settings.source_image_dir}/thumb"
+set :created_image_dir, ENV["OPENSHIFT_TMP_DIR"] || "images"
+
+EXT="png"
 
 get '/' do
 	@wallpapers = source_images.map{|a| get_name a}.sort
 	erb :index
 end
 
-get url[:images] do
+get "/images/:img" do
 	file = thumb_image(params[:img])
 	file = make_thumb(params[:img]) unless File.exists? file
 	send_file(file, {:disposition => "inline", :filename => file})
 end	
-get url[:list] do
-	list = []
-	source_images.each {|f|
-		id = get_name f
-		list << link(url[:img].gsub(":img",id),id)
-	}
-	list.join("<br/>")
+
+["/wallpaper/:img", "/wallpaper/:img/:x"].each do |path|
+	get path do
+		"Must specify height and width: `/wallpaper/:img/:width/:height"
+	end
 end
 
-get url[:img] do
-	i = params[:img]
-        o = ["<img src=\"../#{i}.#{source_ext}\">"]
-        o << "Try these: "
-        ["1024_768","1600_900","2560_1920"].each do |r|
-                x = r.tr("_","x")
-                s = r.tr("_","/")
-                o << "<a href='#{url[:wallpaper].gsub(":img",i).gsub(":width/:height", s)}'>#{x}</a>"
-        end
-        o << "Or, enter whatever you like"
-        o.join("<br/>")
-end
-
-get url[:wallpaper].split("/")[0..-2].join("/") do
-	"Height not specified"
-end
-
-get url[:wallpaper] do
+get "/wallpaper/:image/:width/:height" do
 	err = "";
 	
-	image = params[:img]
+	image = params[:image]
 
 	unless File.exists? base_image image
 		err = "Image invalid identifier"
@@ -51,32 +33,27 @@ get url[:wallpaper] do
 	w = (params[:width]).to_i || 0
 	h = (params[:height]).to_i || 0
 
-	ext = created_ext
+	err = "Width needs to be an integer greater than 0" if w == 0 
 
-	if w == 0 
-	 	err = "Width needs to be an integer greater than 0"
-	end
+	err = "Height needs to be an integer greater than 0" if h == 0 
 
-	if h == 0 
-		err = "Height needs to be an integer greater than 0"
-	end
-
-        if w > 3840 || h > 2160
-                err = "Slow down there, bucko! I can't do anything bigger than 4K"
-        end
+	err = "Slow down there, bucko! I can't do anything bigger than 4K" if w > 3840 || h > 2160
 	
 	unless err.length > 0
-		debug "Got a request for #{image} with dimensions #{w}x#{h} in format #{ext}"
-		file = File.join(created_image_dir, img_name(image, w, h, ext))
+		debug "Got a request for #{image} with dimensions #{w}x#{h} in format #{EXT}"
+		file = File.join(settings.created_image_dir, img_name(image, w, h, EXT))
 		
 		unless File.exists? file
-			debug "File doesn't yet exist, create it!~"
-			file, msg = make({file: base_image(image),
-				     height: h,
-				     width: w,
-				     output_folder: "images"})
+			start = Time.now().to_f; debug "Converting #{file}"
+			
+			FileUtils.cp(base_image(image), file)
+			color = base_color file
 
-			debug "created #{file}"
+			trim! file: file
+			resize! width: w * 0.9, height: h * 0.9, file: file, fill: color, gravity: "SouthEast"
+			resize! width: w * 0.9, height: h * 0.9, file: file, fill: color, gravity: "NorthWest"
+
+			debug "New file in #{file}\nProcessed in: #{(Time.now.to_f - start).round(3)} ms"
 		else 
 			debug "File already existed. NOT creating"
 		end
@@ -91,37 +68,50 @@ get url[:wallpaper] do
 	end
 end
 
+
+def trim! args
+	i = ImageSorcery.new(args[:file])
+	i.convert(args[:file], {trim: true})	
+end
+
+def resize! args
+	i = ImageSorcery.new(args[:file])
+	dimension = "#{args[:width]}x#{args[:height]}" 
+	i.manipulate!(extent: dimension, 
+		      resize: dimension,
+		      gravity: args[:gravity], 
+		      background: args[:fill]
+	)
+end
+
 def make_thumb img
 	file = base_image img
 	fn = thumb_image img
 	FileUtils.cp(file, fn)
-	res = "150x150"
 	x = ImageSorcery.new(fn)
 	x.manipulate!(thumbnail: "#{res}>")
-	x.manipulate!(extent: res,
-		      resize: res,
-		      gravity: "center",
-		      background: base_color(file))
-
+	resize! width: 150, height: 150, file: file, fill: base_color(file), gravity: "center"
 	return fn
 end
 
-def img_name i, w, h, e; "#{i}_#{w}x#{h}.#{e}"; end
-
-def debug msg; puts msg if ENV["DEBUG"]; end
-def get_name str; str.split("/").last.split(".").first; end
-def source_image_dir;  ENV["OPENSHIFT_DATA_DIR"] || "public"; end
-def created_image_dir; ENV["OPENSHIFT_TMP_DIR"] || "images"; end
-def js_image_dir; "images"; end
-def thumb_image_dir; File.join(source_image_dir, "thumb"); end
-def source_ext;        "jpg";    end
-def created_ext;       "png";    end
-def source_images; Dir.glob(File.join(source_image_dir, "*.#{source_ext}")); end
-def js_base_image image; File.join(js_image_dir, image); end
-def base_image image; File.join(source_image_dir, "#{image}.#{source_ext}"); end
-def thumb_image image; File.join(thumb_image_dir, "#{image}.#{source_ext}"); end
-def link href, link=href; "<a href=\"#{href}\">#{link}</a>"; end
-def sub h, sym, t; s = ":"+sym.to_s; h[sym].gsub(s,t); end
+def img_name i, w, h, e
+	"#{i}_#{w}x#{h}.#{e}"
+end
+def debug msg; 
+	puts msg if ENV["DEBUG"]
+end
+def get_name str 
+	str.split("/").last.split(".").first
+end
+def source_images 
+	Dir.glob(File.join(settings.source_image_dir, "*.#{EXT}"))
+end
+def base_image image 
+	File.join(settings.source_image_dir, "#{image}.#{EXT}")
+end
+def thumb_image image
+	File.join(settings.thumb_image_dir, "#{image}.#{EXT}")
+end
 
 def base_color img
 	i = ImageSorcery.new img
@@ -136,42 +126,3 @@ def base_color img
 		.sort_by{|k,v| v}.last.first
 	return color
 end
-
-def make args
-	start  = Time.now.to_f
-
-        file = args[:file]
-        w = args[:width]
-	h = args[:height] 
-	output_folder = args[:output_folder]
-
-        name = get_name file
-        ext = created_ext
-	resolution = "#{w}x#{h}"
-	buffer = "#{w/10*9}x#{h/10*9}"
-
-        debug "Converting #{file}"
-	
-	color = base_color file
-	
-	fn = File.join(output_folder, img_name(name, w, h, ext))
-
-	FileUtils.cp(file,fn)
-
-	x = ImageSorcery.new(fn)
-
-	x.convert(fn, {trim: true})
-
-	x.manipulate!(extent: buffer,
-		      resize: buffer,
-		      gravity: "SouthEast",
-		      background: color)
-
-	x.manipulate!(extent: resolution,
-		      resize: resolution,
-		      background: color)
-
-	debug "New file in #{fn}\nProcessed in: #{(Time.now.to_f - start).round(3)} ms"
-	return fn,""
-end
-

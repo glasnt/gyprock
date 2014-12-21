@@ -13,21 +13,20 @@
 		url(fonts/PTSans.svg#PTSans-Regular) format('svg');
 	}
 
-
 body {
 	font:24px 'PT Sans', sans-serif;
 }
 .form-inline {
-    min-width: 0;
-    width: auto;
-    display: inline;
+	min-width: 0;
+	width: auto;
+	display: inline;
 }
-.img { padding: 5px }
-.blackmetal { padding: 10px}
+.img {		padding: 5px }
+.blackmetal {	padding: 10px}
 .blackmetal a { color: #111 } 
-.di_input { width: 3em }
-.modal-body { font-size: 14px }
-dd { margin-bottom: 20px; }
+.di_input { 	width: 3em }
+.modal-body { 	font-size: 14px }
+dd {		margin-bottom: 20px; }
 </style>
 
 <body>
@@ -46,7 +45,7 @@ dd { margin-bottom: 20px; }
 		<div class="col-lg-12">
 		<p align="center">
 			<% @wallpapers.each do |w| 
-				%><a href="javascript:getWallpaper('<%= w %>')"><img src="<%= js_base_image w %>" class="img img-circle"></a>
+				%><a href="javascript:getWallpaper('<%= w %>')"><img src="<%= File.join("images", w) %>" class="img img-circle"></a>
 			<% end %>
 		</p>
 		</div>
@@ -117,7 +116,9 @@ function rs_dv(id) {
 	return "#"+nf
 }
 
-function loadNew() { 
+function loadNew() {
+	console.log(h) 
+	console.log(document.forms["user"]["height"].value)
 	w =  document.forms["user"]["width"].value || w
 	h =  document.forms["user"]["height"].value || h
 	document.forms["hides"]["w"] = w
