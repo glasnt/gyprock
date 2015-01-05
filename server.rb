@@ -51,7 +51,7 @@ get "/wallpaper/:image/:width/:height" do
 
 			trim! file: file
 			resize! width: w * 0.9, height: h * 0.9, file: file, fill: color, gravity: "SouthEast"
-			resize! width: w * 0.9, height: h * 0.9, file: file, fill: color, gravity: "NorthWest"
+			resize! width: w,       height: h,       file: file, fill: color, gravity: "NorthWest"
 
 			debug "New file in #{file}\nProcessed in: #{(Time.now.to_f - start).round(3)} ms"
 		else 
